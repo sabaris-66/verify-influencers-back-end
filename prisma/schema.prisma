@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  username  String    @unique
+  password  String
+  role      Role      @default(REVIEWER)
+  isActive  Boolean   @default(true)
+  lastLogin DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Task      Task[]
+}
+
+model Influencer {
+  id               Int      @id @default(autoincrement())
+  name             String
+  socialMediaLinks String[]
+  followersCount   Int
+  categories       String[]
+  tags             String[]
+  claims           Claim[]
+  trustScore       Float
+  revenue          Float
+  isVerified       Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Claim {
+  id              Int                @id @default(autoincrement())
+  description     String
+  category        String
+  verification    VerificationStatus
+  trustScore      Float
+  confidenceScore Float
+  sourceLinks     String[]
+  influencerId    Int
+  influencer      Influencer         @relation(fields: [influencerId], references: [id])
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+}
+
+model Task {
+  id              Int        @id @default(autoincrement())
+  filters         Json
+  status          TaskStatus @default(PENDING)
+  priority        Priority   @default(MEDIUM)
+  dueDate         DateTime?
+  reviewerId      Int?
+  reviewer        User?      @relation(fields: [reviewerId], references: [id])
+  claimsToAnalyze Int
+  notes           String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}
+
+enum Role {
+  ADMIN
+  REVIEWER
+}
+
+enum VerificationStatus {
+  VERIFIED
+  QUESTIONABLE
+  DEBUNKED
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
